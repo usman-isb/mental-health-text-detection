@@ -101,7 +101,8 @@ Anxiety/Stress) contribute proportionally to the gradient.
 | Learning rate | 2e-5 |
 | Weight decay | 0.01 |
 | LR schedule | Linear warmup over first 10% of steps, then linear decay to 0 |
-| Batch size | 16 |
+| Batch size (training) | 16 |
+| Batch size (evaluation) | 64 |
 | Epochs | 3 |
 | Gradient clipping | max-norm 1.0 |
 | Seed | 42 (torch + numpy) |

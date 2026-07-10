@@ -36,28 +36,37 @@ without ever running the training notebooks.
 - The label encoder must exist: `datasets/processed/splits/label_encoder.pkl`
   (created by `notebooks/02_preprocess.ipynb`; already included if you copied the project folder)
 
-## Run
+## Run (Windows)
 
-Open two terminals in the project root (the folder containing `webapp/`).
+Open two terminals (Command Prompt or PowerShell) in the project root (the folder
+containing `webapp/`).
 
 **Terminal 1 — backend:**
 
-```bash
-source venv/bin/activate
-cd webapp/backend
+```bat
+venv\Scripts\activate
+cd webapp\backend
 uvicorn main:app --port 8000
 ```
 
-Wait for `Fine-tuned BERT loaded on <device>` in the log. On first run you will see
-`Local model not found — downloading from Hugging Face ...` — this happens only once.
-
 **Terminal 2 — frontend:**
 
-```bash
-source venv/bin/activate
-cd webapp/frontend
+```bat
+venv\Scripts\activate
+cd webapp\frontend
 streamlit run app.py
 ```
+
+### First run
+
+Wait for `Fine-tuned BERT loaded on <device>` in the backend log before using the app.
+On first run you will see `Local model not found — downloading from Hugging Face ...`
+— the model (~440 MB) is downloaded once and cached in
+`C:\Users\<name>\.cache\huggingface`.
+
+The backend picks the best available device automatically: NVIDIA GPU (CUDA) if
+available, otherwise CPU. On CPU, predictions take a moment longer and SHAP
+explanations may take up to ~30 seconds.
 
 Then open **http://localhost:8501** in a browser.
 
