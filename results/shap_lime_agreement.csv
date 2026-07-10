@@ -1,0 +1,6 @@
+class,shared_tokens,n_shared,jaccard
+Anxiety/Stress,"anxiety, health, meditation, relaxation, stress",5,0.333
+Bipolar,"advice, etc",2,0.111
+Depression,"depression, just, like, mattered, no, really",6,0.333
+Normal,"i, not, t, upset",4,0.211
+Suicidal,"cannot, energy, i, killing",4,0.235

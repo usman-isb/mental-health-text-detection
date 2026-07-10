@@ -1,0 +1,7 @@
+model,accuracy,macro_f1
+BERT (fine-tuned),0.8341,0.841
+XGBoost,0.772,0.7747
+Logistic Regression,0.767,0.7727
+CNN,0.7329,0.727
+BERT (frozen),0.6993,0.6798
+BiLSTM,0.6409,0.6288
