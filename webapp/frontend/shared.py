@@ -280,6 +280,69 @@ FOOTER = """
 """
 
 
+EXPLAINER_MD = """
+#### How to read these charts
+
+Each bar is a **word (or token) from the analysed text**:
+
+- 🟩 **Green bar (pointing right)** — the word pushed the model *toward* the predicted
+  class. Bigger bar = stronger push.
+- 🟥 **Red bar (pointing left)** — the word pushed *against* the predicted class
+  (it made the model less confident).
+
+Words are sorted by influence, so the top bar is the single most important word in the
+decision. For example, if *"I feel hopeless and can't sleep"* is predicted as
+**Depression**, "hopeless" appears as a large green bar — the main evidence. A word like
+"gym" or "friends" might appear red, because it weakly suggests a Normal post.
+
+#### What each method actually computes
+
+**LIME** (*Local Interpretable Model-agnostic Explanations*) works by **deleting words
+and watching what happens**. It creates hundreds of variants of the text with random
+words removed, sends each through BERT, and fits a simple linear model over the observed
+probability changes. A word whose removal consistently drops the predicted-class
+probability gets a large positive weight. A LIME bar therefore reads as: *"how much this
+word's presence changes the prediction."*
+
+**SHAP** (*SHapley Additive exPlanations*) comes from cooperative game theory. It treats
+the tokens as "players" contributing to the prediction and computes each token's **fair
+share of the credit**, averaged over many combinations of other tokens being masked or
+present. Its key property is that **the bars add up exactly**: base probability + all
+SHAP values = the model's actual predicted probability. A SHAP bar reads as: *"how many
+percentage points of probability this token contributed."* Because the Partition
+explainer masks sub-word token spans, SHAP sometimes shows fragments or short phrases
+where LIME shows whole words.
+
+#### The practical difference
+
+| | LIME | SHAP |
+|---|---|---|
+| Question it answers | "What happens if this word disappears?" | "What's each token's fair share of the prediction?" |
+| Unit | whole words | tokens / sub-word spans |
+| Bars sum to the prediction? | No (local approximation) | Yes (exact by construction) |
+| Character | fast, intuitive, slightly unstable (random sampling) | slower, theoretically grounded, consistent |
+
+#### Why show both
+
+A single post-hoc explanation can be misleading. When **two independent methods
+highlight the same words** — as they do here for terms like "hopeless", "anxiety" or
+"killing" — that is converging evidence that the model relies on clinically meaningful
+language rather than artefacts. In this project their top-12 tokens overlap with a mean
+Jaccard index of **0.245**: they agree on the strong clinical terms and diverge in the
+tail, largely due to the word-vs-token granularity difference.
+
+⚠️ *Both methods explain the correlations the model learned — not causation. A green bar
+means the model associates that word with the class, not that the word clinically
+indicates the condition.*
+"""
+
+
+def explainer_expander(expanded=False):
+    import streamlit as st
+    with st.expander("ℹ️ What do the LIME and SHAP charts mean?", expanded=expanded):
+        st.markdown(EXPLAINER_MD)
+
+
 def inject_css():
     import streamlit as st
     st.markdown(CSS, unsafe_allow_html=True)

@@ -195,6 +195,8 @@ section("5 · Explainability — SHAP and LIME on the fine-tuned BERT",
         "Post-hoc explanations generated for the deployed model itself: SHAP Partition explainer "
         "with a text masker (token-level) and LIME (word-level perturbation).")
 
+shared.explainer_expander()
+
 img("shap_global_importance.png",
     "Global token importance — mean |SHAP| per token per class, aggregated over a stratified "
     "sample of 100 test posts.")

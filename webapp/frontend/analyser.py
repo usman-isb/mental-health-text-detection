@@ -35,7 +35,6 @@ EXAMPLES = {
     "Anxiety/Stress": "It's been 3 weeks I feel really tired. The heart is pounding, the body is shaky. In this brain it doesn't stop thinking about things. The feeling of not being needed, the feeling of being ignored. The soul is restless. Nervous. Afraid. I cannot concentrate at work and keep worrying about everything.",
     "Bipolar":        "CBT? DBT? Anyone had good experiences? I'm running out of drugs I can try. Vibryd, Lamictal, Latuda, and welbutrin worked for two years but then I crashed and i'm back to zero. Have tried many drugs but pdoc is useless for therapy otherwise. Want to try other therapy stuff in concert with drugs. Does anything work on bipolar?",
     "Depression":     "I have been told that I should take anti-depressants, but they zombify me. I am already numb, what I need is to feel alive again. I am sick of waking up empty everyday. Nothing brings me joy anymore and I just go through the motions. How do you deal with your depression?",
-    "Normal":         "Just got back from the gym and honestly feeling pretty good today. Had a productive morning, caught up with some friends over lunch and managed to finish that report I was dreading. Watching a movie tonight, nothing special just a normal Tuesday.",
     "Suicidal":       "Going to end it tonight. I am tired of being in this endless loop, dying day after day. I know it is pretty pointless but the hurt is just too much to bear. Nobody would notice anyway. I have written the notes. It ends tonight.",
 }
 
@@ -213,6 +212,8 @@ if analyse and text_input.strip():
                 st.caption("Green bars = words push probability toward this class  ·  Red bars = words push probability away.")
             except Exception as e:
                 st.error(f"SHAP explanation failed: {e}")
+
+    shared.explainer_expander()
 
 
 # ── Footer ────────────────────────────────────────────────────────────────────
