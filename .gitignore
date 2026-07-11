@@ -20,6 +20,9 @@ datasets/processed/splits/*
 #    https://huggingface.co/usman-isb/bert-mental-health-detection) ────────────
 models/saved/
 
+# ── Claude Code ───────────────────────────────────────────────────────────────
+.claude/
+
 # ── Secrets ───────────────────────────────────────────────────────────────────
 .env
 *.token
