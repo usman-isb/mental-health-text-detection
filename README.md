@@ -225,3 +225,4 @@ data/
 **Slow training on Windows** — XGBoost and PyTorch run on CPU by default. Training may take 5–15 minutes per model. This is normal.
 
 **BERT download on first run** — `07_train_bert.ipynb` downloads ~440 MB of model weights from HuggingFace on first execution. This is automatic but requires internet.
+# mental-health-text-detection
