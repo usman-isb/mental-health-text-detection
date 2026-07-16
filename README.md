@@ -155,14 +155,14 @@ Run the notebooks in order:
 | Notebook | What it does |
 |---|---|
 | `00_download_datasets.ipynb` | Downloads the two Kaggle datasets |
-| `02_explore_datasets.ipynb` | Explores class distribution and text length |
-| `03_preprocess.ipynb` | Cleans text, merges datasets, splits train/val/test |
-| `04_features.ipynb` | Builds TF-IDF feature matrices |
-| `05_train_ml.ipynb` | Trains Logistic Regression and XGBoost |
-| `06_train_dl.ipynb` | Trains CNN and BiLSTM |
-| `07_train_bert.ipynb` | Fine-tunes BERT |
-| `08_compare.ipynb` | Compares all models |
-| `09_explainability.ipynb` | SHAP and LIME explanations |
+| `01_explore_datasets.ipynb` | Explores class distribution and text length |
+| `02_preprocess.ipynb` | Cleans text, merges datasets, splits train/val/test |
+| `03_features.ipynb` | Builds TF-IDF feature matrices |
+| `04_train_ml.ipynb` | Trains Logistic Regression and XGBoost |
+| `05_train_dl.ipynb` | Trains CNN and BiLSTM |
+| `06_train_bert.ipynb` | Fine-tunes BERT |
+| `07_compare.ipynb` | Compares all models |
+| `08_explainability.ipynb` | SHAP and LIME explanations |
 
 Each notebook saves its outputs (models, processed data) automatically. You do not need to run them all at once.
 
@@ -233,5 +233,4 @@ data/
 
 **Slow training on Windows** — XGBoost and PyTorch run on CPU by default. Training may take 5–15 minutes per model. This is normal.
 
-**BERT download on first run** — `07_train_bert.ipynb` downloads ~440 MB of model weights from HuggingFace on first execution. This is automatic but requires internet.
-# mental-health-text-detection
+**BERT download on first run** — `06_train_bert.ipynb` downloads ~440 MB of model weights from HuggingFace on first execution. This is automatic but requires internet. (The web app does the same on its own first start — see `webapp/README.md`.)
