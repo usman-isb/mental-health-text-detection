@@ -15,7 +15,8 @@ Compares ML, Deep Learning, and Transformer (BERT) models, then deploys the best
 
 ## Requirements
 
-- Python **3.10, 3.11, 3.12, or 3.13**
+- Python **3.10, 3.11, 3.12, or 3.13** (Apple Silicon Macs / Windows / Linux)
+  — on **Intel Macs use 3.10–3.12** (PyTorch has no Intel-Mac wheels for 3.13)
 - A Kaggle account (free) with an API key
 - ~4 GB free disk space
 - Internet connection (first run only, to download datasets and BERT weights)
@@ -26,8 +27,16 @@ Compares ML, Deep Learning, and Transformer (BERT) models, then deploys the best
 
 ### 1. Install Python
 
-Download the macOS installer from https://www.python.org/downloads/  
-Install version **3.13.x** (or 3.10–3.12).
+Download the macOS installer from https://www.python.org/downloads/
+
+- **Apple Silicon Mac (M1/M2/M3/M4):** install version **3.13.x** (or 3.10–3.12)
+- **Intel Mac (e.g. 2017 MacBook Pro):** install version **3.12.x** (or 3.10/3.11) —
+  do **not** use 3.13, PyTorch does not support it on Intel Macs.
+  `requirements.txt` automatically installs the Intel-compatible library versions
+  (torch 2.2.2, transformers 4.x, numpy 1.x).
+
+To check which Mac you have: Apple menu →  About This Mac — "Chip: Apple M…" is
+Apple Silicon; "Processor: … Intel Core …" is Intel.
 
 Verify in Terminal:
 ```

@@ -141,7 +141,7 @@ if analyse and text_input.strip():
 
     with st.spinner("Running prediction…"):
         try:
-            resp = requests.post(f"{API}/predict", json=payload, timeout=30)
+            resp = requests.post(f"{API}/predict", json=payload, timeout=90)
             resp.raise_for_status()
             result = resp.json()
         except Exception as e:
@@ -194,9 +194,9 @@ if analyse and text_input.strip():
     tab_lime, tab_shap = st.tabs(["LIME Feature Attribution", "SHAP Feature Attribution"])
 
     with tab_lime:
-        with st.spinner("Generating LIME explanation…"):
+        with st.spinner("Generating LIME explanation… (can take a minute on CPU-only machines)"):
             try:
-                r = requests.post(f"{API}/explain/lime", json=payload, timeout=60)
+                r = requests.post(f"{API}/explain/lime", json=payload, timeout=300)
                 r.raise_for_status()
                 st.image(base64.b64decode(r.json()['image']), use_container_width=True)
                 st.caption("Green bars = words that support the predicted class  ·  Red bars = words pushing against it.")
@@ -204,9 +204,9 @@ if analyse and text_input.strip():
                 st.error(f"LIME explanation failed: {e}")
 
     with tab_shap:
-        with st.spinner("Generating SHAP explanation…"):
+        with st.spinner("Generating SHAP explanation… (can take a minute on CPU-only machines)"):
             try:
-                r = requests.post(f"{API}/explain/shap", json=payload, timeout=60)
+                r = requests.post(f"{API}/explain/shap", json=payload, timeout=300)
                 r.raise_for_status()
                 st.image(base64.b64decode(r.json()['image']), use_container_width=True)
                 st.caption("Green bars = words push probability toward this class  ·  Red bars = words push probability away.")

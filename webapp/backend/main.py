@@ -42,6 +42,12 @@ NUM_CLASSES = len(CLASS_NAMES)
 DEVICE = torch.device('mps' if torch.backends.mps.is_available()
                       else 'cuda' if torch.cuda.is_available() else 'cpu')
 
+# On CPU-only machines (e.g. Intel Macs) each explanation needs hundreds of BERT
+# forward passes — use smaller sampling budgets there to keep response times sane.
+IS_CPU           = DEVICE.type == 'cpu'
+SHAP_MAX_EVALS   = 100 if IS_CPU else 200
+LIME_NUM_SAMPLES = 100 if IS_CPU else 200
+
 # Load the fine-tuned model from the local folder if present; otherwise download
 # it from the Hugging Face Hub on first run (cached in ~/.cache/huggingface).
 HF_REPO_ID = 'usman-isb/bert-mental-health-detection'
@@ -140,7 +146,8 @@ def explain_lime(body: TextInput):
     confidence = float(proba[pred_idx])
 
     exp = lime_explainer.explain_instance(
-        body.text, predict_proba, num_features=12, num_samples=200, top_labels=1
+        body.text, predict_proba, num_features=12,
+        num_samples=LIME_NUM_SAMPLES, top_labels=1
     )
     word_weights = exp.as_list(label=exp.top_labels[0])
     words  = [w for w, _ in word_weights]
@@ -163,7 +170,7 @@ def explain_shap(body: TextInput):
     pred_label = CLASS_NAMES[pred_idx]
     confidence = float(proba[pred_idx])
 
-    sv     = shap_explainer([body.text], max_evals=200, silent=True)
+    sv     = shap_explainer([body.text], max_evals=SHAP_MAX_EVALS, silent=True)
     vals   = sv.values[0][:, pred_idx]
     tokens = np.array([t.strip() for t in sv.data[0]])
     keep   = np.array([len(t) > 0 for t in tokens])
