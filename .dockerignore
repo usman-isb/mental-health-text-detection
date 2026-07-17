@@ -1,0 +1,11 @@
+# keep the build context small — only webapp/ is copied into the image
+venv/
+datasets/
+models/
+results/
+notebooks/
+.git/
+*.pdf
+**/__pycache__/
+**/.idea/
+**/.DS_Store

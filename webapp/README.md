@@ -41,7 +41,26 @@ without ever running the training notebooks.
 - The label encoder must exist: `datasets/processed/splits/label_encoder.pkl`
   (created by `notebooks/02_preprocess.ipynb`; already included if you copied the project folder)
 
-## Run (macOS)
+## Run with Docker (recommended)
+
+Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/). From the
+project root (the folder containing `webapp/` and `docker-compose.yml`):
+
+```bash
+docker compose up -d --build
+```
+
+Then open **http://localhost:8501** (UI) — the API is at http://localhost:8000.
+One container runs both the backend and the frontend (`webapp/Dockerfile` +
+`webapp/start-docker.sh`); the local model folder, label encoder and results are
+mounted read-only, so no download happens and code changes only need
+`docker compose up -d --build`. Stop with `docker compose down`.
+
+Note: containers run CPU-only (no MPS/CUDA passthrough), so explanations use the
+smaller CPU sampling budgets and take 30–90 seconds. For GPU speed on an
+Apple-Silicon Mac, use the manual method below.
+
+## Run manually (macOS)
 
 Open two terminals in the project root (the folder containing `webapp/`).
 
@@ -65,7 +84,7 @@ Device selection is automatic: Apple-Silicon Macs use the GPU (MPS); **Intel Mac
 CPU** — predictions take a few seconds and LIME/SHAP explanations up to a minute or two
 (the backend automatically uses smaller sampling budgets on CPU to compensate).
 
-## Run (Windows)
+## Run manually (Windows)
 
 Open two terminals (Command Prompt or PowerShell) in the project root (the folder
 containing `webapp/`).

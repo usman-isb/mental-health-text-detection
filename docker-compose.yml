@@ -1,0 +1,13 @@
+services:
+  mindscan:
+    build:
+      context: .
+      dockerfile: webapp/Dockerfile
+    ports:
+      - "8501:8501"   # Streamlit UI  → http://localhost:8501
+      - "8000:8000"   # FastAPI API   → http://localhost:8000
+    volumes:
+      # model + data stay outside the image, mounted read-only
+      - ./models/saved/bert_finetuned:/app/models/saved/bert_finetuned:ro
+      - ./datasets/processed/splits/label_encoder.pkl:/app/datasets/processed/splits/label_encoder.pkl:ro
+      - ./results:/app/results:ro

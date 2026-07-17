@@ -171,8 +171,38 @@ Each notebook saves its outputs (models, processed data) automatically. You do n
 ## Running the web application
 
 The webapp has two parts: a FastAPI backend and a Streamlit frontend.
+There are two ways to run it — **Docker (easiest)** or manually in the venv.
 
-### Start the backend
+### Option A — Docker (recommended)
+
+Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+(macOS 13+ or Windows 10+, Intel and Apple Silicon both supported).
+From the project root:
+
+```
+docker compose up -d --build
+```
+
+The first build takes a few minutes (installs PyTorch and the ML libraries);
+after that, starts are instant. Then open **http://localhost:8501**.
+
+The container mounts your local model (`models/saved/bert_finetuned/`), label
+encoder and results — nothing is downloaded, and the image does not need
+rebuilding when the model changes. The API is also exposed at
+http://localhost:8000.
+
+```
+docker compose logs -f        # watch the logs (wait for "Fine-tuned BERT loaded")
+docker compose down           # stop
+docker compose up -d --build  # rebuild after code changes
+```
+
+Note: Docker containers run CPU-only, so LIME/SHAP explanations take
+30–90 seconds. For GPU speed (Apple Silicon MPS), use Option B.
+
+### Option B — Manual (two terminals, uses GPU if available)
+
+#### Start the backend
 
 **macOS:**
 ```
@@ -188,7 +218,7 @@ cd webapp\backend
 uvicorn main:app --reload --port 8000
 ```
 
-### Start the frontend (new terminal window)
+#### Start the frontend (new terminal window)
 
 **macOS:**
 ```
@@ -219,6 +249,8 @@ data/
   webapp/
     backend/       ← FastAPI prediction API
     frontend/      ← Streamlit UI
+    Dockerfile     ← web app container image
+  docker-compose.yml ← one-command web app (Docker)
   requirements.txt
   README.md
 ```
