@@ -1,10 +1,14 @@
 """
 Streamlit Frontend — Mental Health Detection
-Calls the FastAPI backend at http://localhost:8000
+Two modes, selected by the MINDSCAN_API environment variable:
+  set   (e.g. http://localhost:8000) → call the FastAPI backend (Docker/local)
+  unset → run the model in-process (Streamlit Community Cloud, single process)
 Run: streamlit run webapp/frontend/app.py
 """
 
 import base64
+import os
+
 import requests
 import streamlit as st
 from spellchecker import SpellChecker
@@ -13,7 +17,28 @@ import shared
 
 _spell = SpellChecker()
 
-API = "http://localhost:8000"
+API = os.environ.get("MINDSCAN_API")
+
+if API:
+    def run_predict(text):
+        r = requests.post(f"{API}/predict", json={"text": text}, timeout=90)
+        r.raise_for_status()
+        return r.json()
+
+    def run_lime(text):
+        r = requests.post(f"{API}/explain/lime", json={"text": text}, timeout=300)
+        r.raise_for_status()
+        return r.json()
+
+    def run_shap(text):
+        r = requests.post(f"{API}/explain/shap", json={"text": text}, timeout=300)
+        r.raise_for_status()
+        return r.json()
+else:
+    import inference
+    run_predict = inference.predict
+    run_lime    = inference.explain_lime
+    run_shap    = inference.explain_shap
 
 CLASS_COLOURS = {
     'Anxiety/Stress': '#D97706',
@@ -71,7 +96,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# ── Backend check ─────────────────────────────────────────────────────────────
+# ── Backend check (API mode only) ─────────────────────────────────────────────
 @st.cache_data(ttl=30)
 def check_backend():
     try:
@@ -79,7 +104,7 @@ def check_backend():
     except Exception:
         return False
 
-if not check_backend():
+if API and not check_backend():
     st.error("**Backend offline.** Start it with: `cd webapp/backend && uvicorn main:app`")
     st.stop()
 
@@ -137,13 +162,9 @@ analyse = st.button("Analyse Text", type="primary", disabled=not enough_text)
 
 # ── Results ───────────────────────────────────────────────────────────────────
 if analyse and text_input.strip():
-    payload = {"text": text_input}
-
     with st.spinner("Running prediction…"):
         try:
-            resp = requests.post(f"{API}/predict", json=payload, timeout=90)
-            resp.raise_for_status()
-            result = resp.json()
+            result = run_predict(text_input)
         except Exception as e:
             st.error(f"Prediction failed: {e}")
             st.stop()
@@ -196,9 +217,7 @@ if analyse and text_input.strip():
     with tab_lime:
         with st.spinner("Generating LIME explanation… (can take a minute on CPU-only machines)"):
             try:
-                r = requests.post(f"{API}/explain/lime", json=payload, timeout=300)
-                r.raise_for_status()
-                st.image(base64.b64decode(r.json()['image']), use_container_width=True)
+                st.image(base64.b64decode(run_lime(text_input)['image']), use_container_width=True)
                 st.caption("Green bars = words that support the predicted class  ·  Red bars = words pushing against it.")
             except Exception as e:
                 st.error(f"LIME explanation failed: {e}")
@@ -206,9 +225,7 @@ if analyse and text_input.strip():
     with tab_shap:
         with st.spinner("Generating SHAP explanation… (can take a minute on CPU-only machines)"):
             try:
-                r = requests.post(f"{API}/explain/shap", json=payload, timeout=300)
-                r.raise_for_status()
-                st.image(base64.b64decode(r.json()['image']), use_container_width=True)
+                st.image(base64.b64decode(run_shap(text_input)['image']), use_container_width=True)
                 st.caption("Green bars = words push probability toward this class  ·  Red bars = words push probability away.")
             except Exception as e:
                 st.error(f"SHAP explanation failed: {e}")
