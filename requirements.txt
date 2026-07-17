@@ -5,7 +5,7 @@
 # torch is pinned to a CPU-only wheel: the default Linux wheel bundles CUDA
 # (~5 GB) and would exceed the Community Cloud build limits.
 --extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.7.1+cpu
+torch==2.9.1+cpu
 
 transformers>=4.44.0
 numpy>=1.24.0
