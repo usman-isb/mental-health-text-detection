@@ -1,7 +1,7 @@
 # Fine-Tuning BERT for Mental Health Detection — Step-by-Step Record
 
 This document records exactly how the deployed model
-([`usman-isb/bert-mental-health-detection`](https://huggingface.co/usman-isb/bert-mental-health-detection))
+([`code-world/bert-mental-health-detection`](https://huggingface.co/code-world/bert-mental-health-detection))
 was produced, from raw data to the final checkpoint. The implementation lives in
 `notebooks/06_train_bert.ipynb`; the data preparation steps live in
 `notebooks/02_preprocess.ipynb`.
@@ -159,7 +159,7 @@ over the strongest classical baseline.
 | Artefact | Path |
 |---|---|
 | Fine-tuned model + tokenizer | `models/saved/bert_finetuned/` |
-| Hugging Face mirror (public) | `usman-isb/bert-mental-health-detection` |
+| Hugging Face mirror (public) | `code-world/bert-mental-health-detection` |
 | Per-epoch history | `results/bert_finetune_history.csv` |
 | Test classification report | `results/classification_report_bert.csv` |
 | Results JSON (frozen + fine-tuned) | `models/saved/bert_results.json` |

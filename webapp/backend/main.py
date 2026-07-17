@@ -50,7 +50,7 @@ LIME_NUM_SAMPLES = 100 if IS_CPU else 200
 
 # Load the fine-tuned model from the local folder if present; otherwise download
 # it from the Hugging Face Hub on first run (cached in ~/.cache/huggingface).
-HF_REPO_ID = 'usman-isb/bert-mental-health-detection'
+HF_REPO_ID = 'code-world/bert-mental-health-detection'
 MODEL_SRC  = FT_DIR if os.path.isdir(FT_DIR) else HF_REPO_ID
 if MODEL_SRC == HF_REPO_ID:
     print(f"Local model not found — downloading from Hugging Face: {HF_REPO_ID} ...")

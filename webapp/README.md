@@ -23,7 +23,7 @@ The backend loads the fine-tuned model from `models/saved/bert_finetuned/` if it
 downloaded automatically from Hugging Face on first startup** (~440 MB, cached afterwards
 in `~/.cache/huggingface`):
 
-> https://huggingface.co/usman-isb/bert-mental-health-detection
+> https://huggingface.co/code-world/bert-mental-health-detection
 
 No token is needed — the repository is public. So you can run the web app on a fresh machine
 without ever running the training notebooks.
