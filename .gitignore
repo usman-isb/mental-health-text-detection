@@ -30,3 +30,6 @@ kaggle.json
 
 # ── Logs / temp ───────────────────────────────────────────────────────────────
 *.log
+
+# ── Supplementary report (large binaries, kept local) ─────────────────────────
+supplementary/
