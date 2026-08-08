@@ -7,6 +7,7 @@ Run: streamlit run webapp/frontend/app.py
 """
 
 import base64
+import html
 import os
 
 import requests
@@ -57,10 +58,39 @@ CLASS_ICONS = {
 }
 
 EXAMPLES = {
-    "Anxiety/Stress": "It's been 3 weeks I feel really tired. The heart is pounding, the body is shaky. In this brain it doesn't stop thinking about things. The feeling of not being needed, the feeling of being ignored. The soul is restless. Nervous. Afraid. I cannot concentrate at work and keep worrying about everything.",
-    "Bipolar":        "CBT? DBT? Anyone had good experiences? I'm running out of drugs I can try. Vibryd, Lamictal, Latuda, and welbutrin worked for two years but then I crashed and i'm back to zero. Have tried many drugs but pdoc is useless for therapy otherwise. Want to try other therapy stuff in concert with drugs. Does anything work on bipolar?",
-    "Depression":     "I have been told that I should take anti-depressants, but they zombify me. I am already numb, what I need is to feel alive again. I am sick of waking up empty everyday. Nothing brings me joy anymore and I just go through the motions. How do you deal with your depression?",
-    "Suicidal":       "Going to end it tonight. I am tired of being in this endless loop, dying day after day. I know it is pretty pointless but the hurt is just too much to bear. Nobody would notice anyway. I have written the notes. It ends tonight.",
+    'Anxiety/Stress': [
+        "It's been 3 weeks I feel really tired. The heart is pounding, the body is shaky. In this brain it doesn't stop thinking about things. The feeling of not being needed, the feeling of being ignored. The soul is restless. Nervous. Afraid. I cannot concentrate at work and keep worrying about everything.",
+        "Can muscle weakness be caused by anxiety? My arms and legs have been feeling really weak the past 2 days, and I'm getting worried sick that I have MS/ALS. Can't even carry out daily activities properly as I keep thinking that I'm gonna die. Help is much appreciated.",
+        "Severe chronic stress. Can medication help? Hi I have had a series of extreme stress and my stress response is broken. My head hurts, I feel agitated, and can't think clearly, my muscles ache too, and I lack empathy. Is there anything that can break this out?",
+        "Stress hives. How do I get rid of stress hives on my neck, shoulders and face? It isn't the kind where they last several days, but they keep coming back whenever things get busy at work.",
+        "Anyone have bone or muscle pain that was stress or anxiety induced? I've been having joint and muscle pain that worries me constantly. Anyone else experienced this and found it was just the anxiety?",
+    ],
+    'Bipolar': [
+        "CBT? DBT? Anyone had good experiences? I'm running out of drugs I can try. Vibryd, Lamictal, Latuda, and welbutrin worked for two years but then I crashed and i'm back to zero. Have tried many drugs but pdoc is useless for therapy otherwise. Does anything work on bipolar?",
+        "Manic spending sprees. I'm diagnosed bipolar 2, and whenever I'm manic, I get reckless and spend money like mad. Does anyone have any advice to help with stopping this? It's killing me and makes my depressive episodes way worse.",
+        "Manic episode? What are the signs? I feel like my over obsession over a small incident this morning is an indication of a manic episode because now I've been feeling sad and depleted. How long after diagnosis did you start being able to notice the signs?",
+        'My amusing hypomania sign. Just a funny anecdote: one of my telltale signs of being hypomanic is midnight baking and cooking. Batches of cookies, muffins, whatever I can find a recipe for at two in the morning.',
+        "New psychiatrist prescribed abilify, lexapro, and lamictal. Has anyone been on this combination, or any of them individually, for bipolar? I've only been on lamictal before and I'm not sure what to expect.",
+    ],
+    'Depression': [
+        'I have been told that I should take anti-depressants, but they zombify me. I am already numb, what I need is to feel alive again. I am sick of waking up empty everyday. Nothing brings me joy anymore and I just go through the motions. How do you deal with your depression?',
+        'Nothing feels worth doing anymore. I used to enjoy playing guitar and seeing friends, now I just lie in bed for hours scrolling. I get up, go to work, come home, and none of it means anything. I have felt this heavy for months now.',
+        'I cannot remember the last time I actually felt happy about something. Everything is grey and flat. I keep telling people I am fine because explaining it is exhausting. I am so tired of pretending that things are okay when they are not.',
+        'Woke up feeling completely empty again. I have no motivation to shower or eat properly. My friends invited me out and I made an excuse because being around people feels like too much effort. This has been going on for weeks.',
+    ],
+    'Normal': [
+        'Had a pretty good week overall. Finished the project I was working on, went for a long walk on Saturday and met a few friends for coffee. Planning to start a new book tonight and maybe watch a film if there is time.',
+        'Finally got around to reorganising the kitchen this weekend. Took much longer than expected but it looks great now. Also tried a new pasta recipe which turned out surprisingly well, so I will probably make that again next week.',
+        'Just got back from a weekend trip to the coast with a few friends. The drive was long but the weather held up and we managed to get out on the water both days. Already talking about doing it again in the spring.',
+        'Started a woodworking class on Tuesday evenings. First project is a small side table and I have already made a few mistakes, but the instructor is patient and the other people in the group are friendly.',
+        'Been meaning to sort out the garden all summer and finally made a start on it today. Cleared the beds, planted a few things and repaired the fence panel that blew loose in the storm. Satisfying work.',
+    ],
+    'Suicidal': [
+        'Going to end it tonight. I am tired of being in this endless loop, dying day after day. I know it is pretty pointless but the hurt is just too much to bear. Nobody would notice anyway. I have written the notes. It ends tonight.',
+        'This is the perfect opportunity. Nobody is in the house. I want to die but I am too much of a coward to actually go through with it. I do not know what is stopping me anymore.',
+        'I need someone to talk to. I am thinking about killing myself and there are no hotlines in my country. I need urgent help please help me.',
+        'My heart is forever broken. I want to join them. I say my goodbyes in my head every night and wonder whether anyone would really notice if I was gone.',
+    ],
 }
 
 
@@ -109,55 +139,44 @@ if API and not check_backend():
     st.stop()
 
 
-# ── Input section ─────────────────────────────────────────────────────────────
-st.markdown('<div class="card-title">Try a sample</div>', unsafe_allow_html=True)
+# ── Input section — curated samples only, read-only ───────────────────────────
+st.markdown('<div class="card-title">Select a sample post</div>', unsafe_allow_html=True)
 
-# Example buttons — session state must be set BEFORE text_area renders
-btn_cols = st.columns(len(EXAMPLES))
-for col, (label, text) in zip(btn_cols, EXAMPLES.items()):
-    icon = CLASS_ICONS.get(label, '')
-    if col.button(f"{icon} {label}", use_container_width=True, key=f"btn_{label}"):
-        st.session_state['text_area'] = text
+col_cat, col_ex = st.columns([1, 2], gap="medium")
 
-col_clear, _ = st.columns([1, 9])
-with col_clear:
-    if st.button("Clear", key="btn_clear"):
-        st.session_state['text_area'] = ''
+with col_cat:
+    category = st.selectbox(
+        "Source category",
+        list(EXAMPLES.keys()),
+        format_func=lambda c: f"{CLASS_ICONS.get(c, '')} {c}",
+        key="sel_category",
+    )
 
-st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
-st.markdown('<div class="card-title">Your text</div>', unsafe_allow_html=True)
+options = EXAMPLES[category]
 
-text_input = st.text_area(
-    label="",
-    height=150,
-    placeholder="Paste or type a social media post here (min. 10 real words)…",
-    key="text_area",
-    label_visibility="collapsed",
+with col_ex:
+    choice = st.selectbox(
+        "Example post",
+        range(len(options)),
+        format_func=lambda i: f"Example {i + 1} — {' '.join(options[i].split())[:70]}…",
+        key="sel_example",
+    )
+
+text_input = options[choice]
+
+# Read-only rendering: the sample text cannot be edited or replaced.
+st.markdown(
+    f'<div style="background:#F8FAFC;border:1px solid #E2E8F0;'
+    f'border-left:4px solid {CLASS_COLOURS.get(category, "#6B7280")};'
+    f'border-radius:8px;padding:14px 16px;margin:6px 0 4px 0;'
+    f'font-size:0.95rem;line-height:1.65;color:#1F2937;">'
+    f'{html.escape(text_input)}</div>',
+    unsafe_allow_html=True,
 )
+st.caption(f"{len(text_input.split())} words · read-only sample — the model's "
+           f"prediction below is computed independently of the category shown above.")
 
-# ── Validation feedback ───────────────────────────────────────────────────────
-enough_text = False
-if text_input.strip():
-    valid, reason, word_count, ratio = validate_input(text_input)
-    enough_text = valid
-
-    if reason == "short":
-        needed = 10 - word_count
-        st.markdown(
-            f'<div class="word-counter warn">{word_count}/10 words — add {needed} more to continue</div>',
-            unsafe_allow_html=True,
-        )
-    elif reason == "gibberish":
-        st.warning("Input contains too many unrecognised words. Please enter valid English text.")
-    elif reason == "repeated":
-        st.warning("Input appears to be repeated words. Please enter meaningful sentences.")
-    else:
-        st.markdown(
-            f'<div class="word-counter ready">✓ {word_count} words · {ratio:.0%} valid English</div>',
-            unsafe_allow_html=True,
-        )
-
-analyse = st.button("Analyse Text", type="primary", disabled=not enough_text)
+analyse = st.button("Analyse Text", type="primary")
 
 
 # ── Results ───────────────────────────────────────────────────────────────────
@@ -212,13 +231,15 @@ if analyse and text_input.strip():
 
     # ── Explanations ──────────────────────────────────────────────────────────
     st.markdown('<div class="card-title">Explainability</div>', unsafe_allow_html=True)
+    st.caption("Green bars support the prediction · red bars argue against it. "
+               "New to these charts? See **💡 Understanding XAI** in the sidebar "
+               "for a worked example.")
     tab_lime, tab_shap = st.tabs(["LIME Feature Attribution", "SHAP Feature Attribution"])
 
     with tab_lime:
         with st.spinner("Generating LIME explanation… (can take a minute on CPU-only machines)"):
             try:
                 st.image(base64.b64decode(run_lime(text_input)['image']), use_container_width=True)
-                st.caption("Green bars = words that support the predicted class  ·  Red bars = words pushing against it.")
             except Exception as e:
                 st.error(f"LIME explanation failed: {e}")
 
@@ -226,11 +247,8 @@ if analyse and text_input.strip():
         with st.spinner("Generating SHAP explanation… (can take a minute on CPU-only machines)"):
             try:
                 st.image(base64.b64decode(run_shap(text_input)['image']), use_container_width=True)
-                st.caption("Green bars = words push probability toward this class  ·  Red bars = words push probability away.")
             except Exception as e:
                 st.error(f"SHAP explanation failed: {e}")
-
-    shared.explainer_expander()
 
 
 # ── Footer ────────────────────────────────────────────────────────────────────

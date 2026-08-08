@@ -87,20 +87,122 @@ def fig_to_base64(fig) -> str:
     return base64.b64encode(buf.read()).decode('utf-8')
 
 
-LEGEND = [mpatches.Patch(color='#2ecc71', label='Pushes toward prediction'),
-          mpatches.Patch(color='#e74c3c', label='Pushes away from prediction')]
+GREEN_HL, RED_HL = '#2E9E63', '#D1495B'
+
+# Filler words carry no clinical meaning. Negations are deliberately kept —
+# "not", "never", "cannot" change the meaning of a sentence entirely.
+FILLER = {
+    'a', 'an', 'the', 'and', 'or', 'but', 'so', 'then', 'than', 'as', 'if',
+    'in', 'on', 'at', 'of', 'to', 'for', 'from', 'with', 'by', 'about', 'into',
+    'is', 'are', 'was', 'were', 'be', 'been', 'being', 'am',
+    'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'should',
+    'can', 'could', 'may', 'might', 'must', 'shall',
+    'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'them',
+    'us', 'my', 'your', 'his', 'its', 'our', 'their', 'this', 'that', 'these',
+    'those', 'there', 'here', 'what', 'which', 'who', 'when', 'where', 'how',
+    'just', 'really', 'very', 'also', 'too', 'much', 'many', 'some', 'any',
+    'thing', 'things', 'get', 'got', 'go', 'going', 'like', 'one', 'now',
+    'up', 'out', 'down', 'over', 'again', 'still', 'even', 'ever',
+    's', 't', 'm', 're', 've', 'll', 'd',
+}
+KEEP_ALWAYS = {'not', 'no', 'never', 'cannot', 'nothing', 'nobody', 'none'}
+
+W_IN, MARGIN, FIG_DPI, FS_BODY, ROW_IN = 9.6, 0.30, 130, 14, 0.34
+TOP_N = 6
 
 
-def bar_chart(words, scores, xlabel, title):
-    colours = ['#2ecc71' if s > 0 else '#e74c3c' for s in scores]
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.barh(words[::-1], scores[::-1], color=colours[::-1],
-            edgecolor='black', alpha=0.85)
-    ax.axvline(0, color='black', linewidth=0.8)
-    ax.set_xlabel(xlabel)
-    ax.set_title(title, fontsize=11)
-    ax.legend(handles=LEGEND, fontsize=8)
-    plt.tight_layout()
+def _key(w):
+    return str(w).lower().strip('.,!?;:\'"()[]-#')
+
+
+def _rank_tokens(pairs, top_n=TOP_N):
+    """Strongest meaningful tokens first, de-duplicated."""
+    ranked, seen = [], set()
+    for w, s in pairs:
+        k = _key(w)
+        if not k or k in seen:
+            continue
+        if k not in KEEP_ALWAYS and (k in FILLER or len(k) < 3
+                                     or not any(c.isalpha() for c in k)):
+            continue
+        seen.add(k)
+        ranked.append((k, float(s)))
+    ranked.sort(key=lambda p: abs(p[1]), reverse=True)
+    return ranked[:top_n]
+
+
+def _weight_for(word, weights):
+    """Exact match first, then sub-word match (SHAP emits token fragments)."""
+    k = _key(word)
+    if k in weights:
+        return weights[k]
+    for cand, s in weights.items():
+        if len(cand) >= 4 and cand in k:
+            return s
+    return None
+
+
+def _measure_words(words, weights):
+    fig = plt.figure(figsize=(W_IN, 1), dpi=FIG_DPI)
+    ax = fig.add_axes([0, 0, 1, 1]); ax.axis('off')
+    fig.canvas.draw(); rend = fig.canvas.get_renderer()
+    out = {}
+    for w in set(words) | {' '}:
+        bold = 'bold' if _weight_for(w, weights) is not None else 'normal'
+        t = ax.text(0, 0, w, fontsize=FS_BODY, fontweight=bold)
+        out[w] = t.get_window_extent(rend).width / FIG_DPI
+        t.remove()
+    plt.close(fig)
+    return out
+
+
+def _highlight_figure(text, pairs, pred_label, confidence, method):
+    """Render the post itself with the evidence words highlighted."""
+    top = _rank_tokens(pairs)
+    weights = {k: s for k, s in top}
+    maxabs = max((abs(s) for s in weights.values()), default=1.0) or 1.0
+
+    words = text.split()
+    widths = _measure_words(words, weights)
+    space, usable = widths[' '], W_IN - 2 * MARGIN
+
+    lines, cur, x = [], [], 0.0
+    for w in words:
+        ww = widths[w]
+        if x + ww > usable and cur:
+            lines.append(cur); cur, x = [], 0.0
+        cur.append((w, x, ww)); x += ww + space
+    if cur:
+        lines.append(cur)
+
+    h_in = (2.9 + len(lines)) * ROW_IN
+    fig = plt.figure(figsize=(W_IN, h_in), dpi=FIG_DPI)
+    ax = fig.add_axes([MARGIN / W_IN, 0.02, usable / W_IN, 0.96])
+    ax.axis('off'); ax.set_xlim(0, usable); ax.set_ylim(0, h_in)
+
+    y = h_in - 0.34
+    ax.text(0, y, f'Why the model predicted {pred_label} ({confidence:.0%})',
+            fontsize=15.5, fontweight='bold', va='top')
+    y -= 0.34
+    ax.text(0, y, 'Green = words supporting this prediction   ·   red = words '
+                  f'against it   ·   stronger colour = more important   ·   {method}',
+            fontsize=10, color='#666666', va='top')
+
+    y -= 0.42
+    for line in lines:
+        for w, x0, ww in line:
+            s = _weight_for(w, weights)
+            if s is not None:
+                alpha = 0.32 + 0.58 * (abs(s) / maxabs)
+                ax.add_patch(mpatches.FancyBboxPatch(
+                    (x0 - 0.03, y - 0.105), ww + 0.06, 0.22,
+                    boxstyle='round,pad=0.01,rounding_size=0.04',
+                    fc=GREEN_HL if s > 0 else RED_HL, ec='none',
+                    alpha=alpha, zorder=0))
+            ax.text(x0, y, w, fontsize=FS_BODY, va='center', zorder=2,
+                    fontweight='bold' if s is not None else 'normal')
+        y -= ROW_IN
+
     return fig
 
 
@@ -153,8 +255,8 @@ def explain_lime(body: TextInput):
     words  = [w for w, _ in word_weights]
     scores = [s for _, s in word_weights]
 
-    fig = bar_chart(words, scores, 'LIME Weight',
-                    f'LIME Explanation — Predicted: {pred_label} ({confidence:.0%})')
+    fig = _highlight_figure(body.text,
+                            word_weights, pred_label, confidence, 'LIME')
     img = fig_to_base64(fig)
     plt.close(fig)
     return {"image": img, "prediction": pred_label, "confidence": round(confidence, 4)}
@@ -181,8 +283,9 @@ def explain_shap(body: TextInput):
     words   = tokens[top_idx].tolist()
     scores  = vals[top_idx].tolist()
 
-    fig = bar_chart(words, scores, 'SHAP Value',
-                    f'SHAP Explanation — Predicted: {pred_label} ({confidence:.0%})')
+    fig = _highlight_figure(body.text,
+                            list(zip(tokens.tolist(), vals.tolist())),
+                            pred_label, confidence, 'SHAP')
     img = fig_to_base64(fig)
     plt.close(fig)
     return {"image": img, "prediction": pred_label, "confidence": round(confidence, 4)}
