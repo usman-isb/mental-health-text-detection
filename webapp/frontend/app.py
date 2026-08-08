@@ -15,6 +15,7 @@ st.set_page_config(
 
 pg = st.navigation([
     st.Page("analyser.py",     title="Analyser",         icon="🧠", default=True),
+    st.Page("xai_page.py",     title="Understanding XAI", icon="💡"),
     st.Page("results_page.py", title="Results & EDA",    icon="📊"),
     st.Page("project_page.py", title="Project Overview", icon="📋"),
 ])
